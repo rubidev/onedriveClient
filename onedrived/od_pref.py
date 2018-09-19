@@ -312,125 +312,92 @@ def list_drives():
         error('Error: %s.' % e)
 
 
-def read_drive_config_interactively(drive_exists, curr_drive_config):
-    local_root = None
-    ignore_file = None
-    if drive_exists:
-        local_root_default = curr_drive_config.localroot_path
-        ignore_file_default = curr_drive_config.ignorefile_path
+def local_root_path(curr_drive_config):
+    if curr_drive_config:
+        default = curr_drive_config.localroot_path
     else:
-        local_root_default = os.path.join(context.user_home, 'OneDrive')
-        ignore_file_default = os.path.join(context.config_dir, context.DEFAULT_IGNORE_FILENAME)
-    while local_root is None:
-        local_root = click.prompt('Enter the directory path to sync with this Drive',
-                                  type=str, default=local_root_default)
-        local_root = os.path.abspath(local_root)
-        if not os.path.exists(local_root):
-            mkdir(local_root, context.user_uid)
-        elif not os.path.isdir(local_root):
+        default = os.path.join(context.user_home, 'OneDrive')
+    while True:  # Give a change to the user change his mind.
+        local_root = os.path.abspath(click.prompt(
+            'Enter the directory path to sync with this Drive',
+            type=click.Path(), default=default))
+        # Check if is dir.
+        if not os.path.isdir(local_root):
             error('Path "%s" should be a directory.' % local_root)
-            local_root = None
-        elif not click.confirm('Syncing with directory "%s"? Be careful!! If this directory was cleaned '
-                               'recently, all your files will be deleted from cloud. Type Ctrl + C to '
-                               'abort the operation. Do you want to continue?' % local_root):
-            local_root = None
-    while ignore_file is None:
-        ignore_file = click.prompt('Enter the path to ignore file for this Drive',
-                                   type=str, default=ignore_file_default)
-        ignore_file = os.path.abspath(ignore_file)
+            continue
+
+        if os.path.exists(local_root):
+            # Check if want to use existent dir.
+            if not click.confirm(f'Syncing with directory "{local_root}"? '
+                                 'Be careful!! If this directory was cleaned '
+                                 'recently, all your files will be deleted '
+                                 'from cloud. Type Ctrl + C to abort the '
+                                 'operation. Do you want to continue?'):
+                continue
+        else:
+            # Create dir if doesn't exist.
+            mkdir(local_root, context.user_uid)
+        return local_root
+
+
+def ignore_file_path(curr_drive_config):
+    if curr_drive_config:
+        default = curr_drive_config.ignorefile_path
+    else:
+        default = os.path.join(
+            context.config_dir, context.DEFAULT_IGNORE_FILENAME)
+
+    while True:
+        ignore_file = os.path.abspath(click.prompt(
+            'Enter the path to ignore file for this Drive',
+            type=click.Path(), default=default))
         if not os.path.isfile(ignore_file):
             error('Path "%s" is not a file.' % ignore_file)
-            ignore_file = None
-    return local_root, ignore_file
+            continue
+        return ignore_file
 
 
-@click.command(name='set', short_help='Add a remote Drive to sync with local directory or modify an existing one. '
-                                      'If either --drive-id or --email is missing, use interactive mode.')
-@click.option('--drive-id', '-d', type=str, required=False, default=None,
-              help='ID of the Drive.')
-@click.option('--email', '-e', type=str, required=False, default=None,
-              help='Email of an authorized account.')
-@click.option('--local-root', type=str, required=False, default=None,
-              help='Path to a local directory to sync with the Drive.')
-@click.option('--ignore-file', type=str, required=False, default=None,
-              help='Path to an ignore file specific to the Drive.')
+@click.command(name='set')
+@click.option('--drive-id', '-d', help='ID of the Drive.')
+@click.option('--email', '-e', help='Email of an authorized account.')
+@click.option('--local-root', type=click.Path(),
+              help='Local directory to sync with the Drive.')
+@click.option('--ignore-file', type=click.Path(),
+              help='File that contains path patterns to ignore when syncing.')
 def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
-    try:
-        all_drives, drive_table = print_all_drives()
-        click.echo()
-    except Exception as e:
-        error('Error: %s.' % e)
-        return
-
-    interactive = drive_id is None or email is None
-    if interactive:
+    """Add or modify a remote drive to sync with local directory."""
+    all_drives, drive_table = print_all_drives()
+    click.echo()
+    # Get drive_id and email
+    if not all(drive_id, email):
         # Interactive mode to ask for which drive to add.
         index = click.prompt('Please enter row number of the Drive to add or modify (CTRL+C to abort)', type=int)
-        try:
-            email, drive_id = index_to_drive_table_row(index, drive_table)
-        except ValueError as e:
-            error(str(e))
-            return
-
-    try:
-        account_id = email_to_account_id(context, email)
-    except Exception as e:
-        error(str(e))
-        return
-
-    # Traverse the Drive objects and see if Drive exists.
-    found_drive = False
-    for d in all_drives[account_id][2]:
-        if drive_id == d.id:
-            found_drive = True
-            break
-    if not found_drive:
+        email, drive_id = index_to_drive_table_row(index, drive_table)
+    # Get account_id
+    account_id = email_to_account_id(context, email)
+    # Check if drive_id exists on OneDrive.
+    acc_profile, _, drives = all_drives[account_id]
+    if not any(drive.id == drive_id for drive in drives):
         error('Did not find Drive "%s".' % drive_id)
         return
-
-    # Confirm if Drive already exists.
-    drive_exists = drive_id in context.all_drives()
+    # Check if drive is already configured.
     curr_drive_config = None
-    if drive_exists:
-        if interactive:
-            click.confirm('Drive "%s" is already set. Overwrite its existing configuration?' % drive_id, abort=True)
+    if drive_id in context.all_drives():
+        click.confirm(f'Drive "{drive_id}" is already set. '
+                      'Overwrite its existing configuration?', abort=True)
         curr_drive_config = context.get_drive(drive_id)
-
+    # Log action.
     click.echo()
-    acc_profile = all_drives[account_id][0]
     click.echo(click.style(
-        'Going to add/edit Drive "%s" of account "%s"...' % (drive_id, acc_profile.account_email), fg='cyan'))
+        f'Going to add/edit Drive "{drive_id}"'
+        f' of account "{acc_profile.account_email}"...', fg='cyan'))
+    # Get local_root.
+    local_root = local_root_path(curr_drive_config)
+    # Get ignore_file.
+    ignore_file = ignore_file_path(curr_drive_config)
 
-    if interactive:
-        local_root, ignore_file = read_drive_config_interactively(drive_exists, curr_drive_config)
-    else:
-        # Non-interactive mode. The drive may or may not exist in config, and the cmdline args may or may not be
-        # specified. If drive exists in config, use existing values for missing args. If drive does not exist,
-        # local root is required and ignore file is optional (use default if missing).
-        try:
-            if local_root is None:
-                if drive_exists:
-                    local_root = curr_drive_config.localroot_path
-                else:
-                    raise ValueError('Please specify the local directory for the Drive with "--local-root" argument.')
-            local_root = os.path.abspath(local_root)
-            if not os.path.isdir(local_root):
-                raise ValueError('Path "%s" should be an existing directory.' % local_root)
-            if ignore_file is None and drive_exists:
-                ignore_file = curr_drive_config.ignorefile_path
-            if ignore_file is None or not os.path.isfile(ignore_file):
-                click.secho('Warning: ignore file path does not point to a file. Use default.', fg='yellow')
-                ignore_file = context.config_dir + '/' + context.DEFAULT_IGNORE_FILENAME
-            if (drive_exists and
-                local_root == curr_drive_config.localroot_path and
-                    ignore_file == curr_drive_config.ignorefile_path):
-                click.secho('No parameter was changed. Skipped operation.', fg='yellow')
-                return
-        except ValueError as e:
-            error(str(e))
-            return
-
-    d = context.add_drive(drive_config.LocalDriveConfig(drive_id, account_id, ignore_file, local_root))
+    d = context.add_drive(drive_config.LocalDriveConfig(
+        drive_id, account_id, ignore_file, local_root))
     save_context(context)
     success('\nSuccessfully configured Drive %s of account %s (%s):' % (
         d.drive_id, acc_profile.account_email, d.account_id))
