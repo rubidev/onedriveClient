@@ -276,6 +276,7 @@ def print_all_drives():
 
 def print_saved_drives():
     click.echo(click.style('Drives that have been set up:', bold=True))
+    click.echo(f'Ref: {context.config_dir}/{context.DEFAULT_CONFIG_FILENAME}')
     all_drive_ids = context.all_drives()
     if len(all_drive_ids) > 0:
         click.echo()
@@ -286,10 +287,11 @@ def print_saved_drives():
             click.echo('   Account:     %s (%s)' % (curr_account.account_email, curr_drive_config.account_id))
             click.echo('   Local root:  %s' % curr_drive_config.localroot_path)
             click.echo('   Ignore file: %s' % curr_drive_config.ignorefile_path)
+            click.echo('   Upload operations: %s' % getattr(curr_drive_config, 'upload_operations', 'all'))
+            click.echo('   Download operations: %s' % getattr(curr_drive_config, 'download_operations', 'all'))
             click.echo()
     else:
-        click.echo(' No Drive has been setup with onedrived.\n')
-    return all_drive_ids
+        error(' No Drive has been setup with onedrived.\n')
 
 
 def index_to_drive_table_row(index, drive_table):
@@ -440,9 +442,10 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
 @click.option('--drive-id', '-d', type=str, required=False, default=None,
               help='ID of the Drive.')
 @click.option('--yes', '-y', is_flag=True, default=False, required=False,
-              help='If set, quietly delete the Drive if existing without confirmation.')
+              help='If set, quietly delete the Drive without confirmation.')
 def delete_drive(drive_id=None, yes=False):
-    all_drive_ids = print_saved_drives()
+    all_drive_ids = context.all_drives()
+    print_saved_drives()
 
     if len(all_drive_ids) == 0:
         return
@@ -452,10 +455,10 @@ def delete_drive(drive_id=None, yes=False):
             error(translator['od_pref.del_drive.specify_drive_to_delete'])
             return
         index = click.prompt(translator['od_pref.del_drive.choose_index'], type=int)
-        if isinstance(index, int) and 0 <= index < len(all_drive_ids):
+        try:
             drive_id = all_drive_ids[index]
-        else:
-            error('Error: "%s" is not a valid # number.' % str(index))
+        except KeyError:
+            error(f'Error: "{index}" is not a valid # number.')
             return
 
     if drive_id not in all_drive_ids:
