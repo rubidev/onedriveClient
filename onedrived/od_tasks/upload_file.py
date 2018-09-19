@@ -4,8 +4,8 @@ import os
 import onedrivesdk
 import onedrivesdk.error
 
-from . import update_mtime
-from ..od_api_helper import item_request_call
+from onedrived.od_tasks import update_mtime
+from onedrived.od_api_helper import item_request_call
 
 
 class UploadFileTask(update_mtime.UpdateTimestampTask):

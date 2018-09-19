@@ -1,6 +1,6 @@
 import os
 
-from . import exceptions
+from onedrived.od_models.dict_guard import exceptions
 
 
 class DictEntryTypes:

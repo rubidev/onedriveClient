@@ -7,7 +7,7 @@ import shutil
 import psutil
 import requests
 
-from . import http_server
+from onedrived.od_webhooks import http_server
 
 
 class WebhookConfig(http_server.WebhookConfig):

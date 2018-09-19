@@ -9,13 +9,13 @@ import click
 import keyring
 import tabulate
 
-from . import __version__
-from . import mkdir, get_resource, od_i18n, od_auth
-from .od_models import pretty_api, drive_config, account_profile
-from .od_api_session import OneDriveAPISession, get_keyring_key
-from .od_models.dict_guard import GuardedDict, exceptions as guard_errors
-from .od_context import load_context, save_context
-from .od_repo import get_drive_db_path
+from onedrived import __version__
+from onedrived import mkdir, get_resource, od_i18n, od_auth
+from onedrived.od_models import pretty_api, drive_config, account_profile
+from onedrived.od_api_session import OneDriveAPISession, get_keyring_key
+from onedrived.od_models.dict_guard import GuardedDict, exceptions as guard_errors
+from onedrived.od_context import load_context, save_context
+from onedrived.od_repo import get_drive_db_path
 
 
 context = load_context()

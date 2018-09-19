@@ -3,15 +3,25 @@ import os
 import threading
 
 import onedrivesdk.error
-from inotify_simple import flags as _inotify_flags, masks as _inotify_masks, INotify as _INotify
+from inotify_simple import (
+    flags as _inotify_flags,
+    masks as _inotify_masks,
+    INotify as _INotify,
+)
 
-from .od_tasks import delete_item, move_item, merge_dir, update_mtime, upload_file
-from .od_models.path_filter import PathFilter
-from .od_models.bidict import loosebidict
-from .od_api_helper import item_request_call
-from .od_hashutils import hash_match
-from .od_repo import ItemRecordType
-from .od_stringutils import get_filename_with_incremented_count
+from onedrived.od_tasks import (
+    delete_item,
+    move_item,
+    merge_dir,
+    update_mtime,
+    upload_file,
+)
+from onedrived.od_models.path_filter import PathFilter
+from onedrived.od_models.bidict import loosebidict
+from onedrived.od_api_helper import item_request_call
+from onedrived.od_hashutils import hash_match
+from onedrived.od_repo import ItemRecordType
+from onedrived.od_stringutils import get_filename_with_incremented_count
 
 
 class ParentTaskExistsException(Exception):
