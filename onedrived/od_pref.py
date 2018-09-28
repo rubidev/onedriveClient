@@ -248,10 +248,7 @@ def print_all_drives():
     for i in context.all_accounts():
         drive_objs = []
         profile = context.get_account(i)
-        if profile.account_type == account_profile.AccountTypes.BUSINESS:
-            authenticator, drives = od_auth.get_authenticator_and_drives(context, i)
-        else:
-            authenticator, drives = od_auth.get_authenticator_and_drives(context, i)
+        authenticator, drives = od_auth.get_authenticator_and_drives(context, i)
         for d in drives:
             drive_objs.append(d)
             if profile.account_type == account_profile.AccountTypes.BUSINESS:
