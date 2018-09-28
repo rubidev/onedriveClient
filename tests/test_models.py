@@ -162,6 +162,8 @@ class TestDriveConfig(unittest.TestCase):
         self.assertEqual(self.drive_dict['drive_id'], self.drive_config.drive_id)
         self.assertEqual(self.drive_dict['ignorefile_path'], self.drive_config.ignorefile_path)
         self.assertEqual(self.drive_dict['localroot_path'], self.drive_config.localroot_path)
+        self.assertIsNotNone(self.drive_config.from_local_config)
+        self.assertIsNotNone(self.drive_config.from_cloud_config)
 
 
 class TestWebhookNotification(unittest.TestCase):
