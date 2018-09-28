@@ -369,7 +369,7 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
     all_drives, drive_table = print_all_drives()
     click.echo()
     # Get drive_id and email
-    if not all(drive_id, email):
+    if not all([drive_id, email]):
         # Interactive mode to ask for which drive to add.
         index = click.prompt('Please enter row number of the Drive to add or modify (CTRL+C to abort)', type=int)
         email, drive_id = index_to_drive_table_row(index, drive_table)
@@ -377,7 +377,7 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
     account_id = email_to_account_id(context, email)
     # Check if drive_id exists on OneDrive.
     acc_profile, _, drives = all_drives[account_id]
-    if not any(drive.id == drive_id for drive in drives):
+    if not any([drive.id == drive_id for drive in drives]):
         error('Did not find Drive "%s".' % drive_id)
         return
     # Check if drive is already configured.
