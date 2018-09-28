@@ -24,7 +24,7 @@ def get_sample_repo():
     drive = get_sample_drive()
     drive_dict, drive_config = get_sample_drive_config()
     drive_dict['localroot_path'] = temp_repo_dir.name
-    drive_config = drive_config._replace(localroot_path=temp_repo_dir.name)
+    drive_config.localroot_path = temp_repo_dir.name
     repo = od_repo.OneDriveLocalRepository(ctx, auth, drive, drive_config)
     return temp_config_dir, temp_repo_dir, drive_config, repo
 

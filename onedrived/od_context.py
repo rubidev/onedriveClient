@@ -161,7 +161,7 @@ class UserContext:
         :param od_models.drive_config.LocalDriveConfig drive_config:
         :return od_models.drive_config.LocalDriveConfig drive_config:
         """
-        return self._add_and_return('drives', 'drive_id', drive_config, drive_config._asdict())
+        return self._add_and_return('drives', 'drive_id', drive_config, drive_config.to_dict())
 
     def get_drive(self, drive_id):
         """

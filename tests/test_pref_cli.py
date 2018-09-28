@@ -116,12 +116,24 @@ class TestPrefCLI(unittest.TestCase):
 
     @requests_mock.mock()
     def test_add_drive(self, mock):
-        drive_id = 'xb_drive_id'
+        self._call_authenticate_account(mock=mock, code='foobar_code', args=('--code', 'foobar_code'))
+
+        def fake_accounts():
+            return ['713d61']
+        # Mock account to use the fake
+        od_pref.context.all_accounts = fake_accounts
         self._setup_list_drive_mock(mock)
         tmp_local_repo = tempfile.TemporaryDirectory()
         try:
             od_pref.set_drive(
-                args=('--drive-id', drive_id, '--email', 'xybu92@live.com', '--local-root', tmp_local_repo.name))
+                args=(
+                    '--drive-id', 'new_drive_id',
+                    '--email', 'foo@bar.com',
+                    '--local-root', tmp_local_repo.name,
+                    '--ignore-file', tmp_local_repo.name + '/ignore_file.txt',
+                    '--from-local-config', 'dmn',
+                    '--from-cloud-config', 'dmn',
+                ))
             self.assertTrue(os.path.isfile(od_repo.get_drive_db_path(od_pref.context.config_dir, drive_id)))
         except SystemExit as e:
             if e.code == 0:
