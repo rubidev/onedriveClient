@@ -115,7 +115,7 @@ class TestPrefCLI(unittest.TestCase):
                 pass
 
     @requests_mock.mock()
-    def test_add_drive(self, mock):
+    def test_add_drive(self, mock, drive_id='new_drive_id'):
         self._call_authenticate_account(mock=mock, code='foobar_code', args=('--code', 'foobar_code'))
 
         def fake_accounts():
@@ -127,7 +127,7 @@ class TestPrefCLI(unittest.TestCase):
         try:
             od_pref.set_drive(
                 args=(
-                    '--drive-id', 'new_drive_id',
+                    '--drive-id', drive_id,
                     '--email', 'foo@bar.com',
                     '--local-root', tmp_local_repo.name,
                     '--ignore-file', tmp_local_repo.name + '/ignore_file.txt',
@@ -142,7 +142,18 @@ class TestPrefCLI(unittest.TestCase):
     @requests_mock.mock()
     def test_del_drive(self, mock):
         drive_id = 'xb_drive_id'
-        self.test_add_drive()
+        self.test_add_drive(drive_id=drive_id)
+        try:
+            od_pref.delete_drive(args=('--drive-id', drive_id, '--yes'))
+            self.assertFalse(os.path.exists(od_repo.get_drive_db_path(od_pref.context.config_dir, drive_id)))
+        except SystemExit as e:
+            if e.code == 0:
+                pass
+
+    @requests_mock.mock()
+    def test_del_unknown_drive(self, mock):
+        drive_id = 'unknown_drive'
+        self.assertFalse(os.path.isfile(od_repo.get_drive_db_path(od_pref.context.config_dir, drive_id)))
         try:
             od_pref.delete_drive(args=('--drive-id', drive_id, '--yes'))
             self.assertFalse(os.path.exists(od_repo.get_drive_db_path(od_pref.context.config_dir, drive_id)))
