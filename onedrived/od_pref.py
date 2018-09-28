@@ -313,6 +313,7 @@ def list_drives():
 
 
 def local_root_path(curr_drive_config):
+    """Get the root path to sync the drive."""
     if curr_drive_config:
         default = curr_drive_config.localroot_path
     else:
@@ -341,6 +342,7 @@ def local_root_path(curr_drive_config):
 
 
 def ignore_file_path(curr_drive_config):
+    """Get the path to find the configuration to ignore files."""
     if curr_drive_config:
         default = curr_drive_config.ignorefile_path
     else:
@@ -357,6 +359,40 @@ def ignore_file_path(curr_drive_config):
         return ignore_file
 
 
+def from_local_configuration(curr_drive_config):
+    """Get the operations that will be performed from local to the cloud."""
+    if getattr(curr_drive_config, 'from_local_config', None):
+        default = curr_drive_config.from_local_config
+    else:
+        default = 'dmn'
+
+    return click.prompt(
+        'Type the operations that you want to enable to perform from local'
+        ' (from local to OneDrive), for example if you delete a local content '
+        ' and the "d" configuration is set, this content  will be deleted on '
+        ' the OneDrive too. Use "d" for delete, "m" for move and rename'
+        ' "n" for new. You can set more than one option, for example: "dmn"'
+        ' for delete + move + new.',
+        default=default)
+
+
+def from_cloud_configuration(curr_drive_config):
+    """Get the operations that will be performed from the cloud to local."""
+    if getattr(curr_drive_config, 'from_cloud_config', None):
+        default = curr_drive_config.from_cloud_config
+    else:
+        default = 'dmn'
+
+    return click.prompt(
+        'Type the operations that you want to enable to perform from cloud'
+        ' (from OneDrive to local), for example if you delete a content on'
+        ' OneDrive, and the "d" configuration is set, this content'
+        ' will be deleted locally too. Use "d" for delete, "m" for move and rename'
+        ' "n" for new. You can set more than one option, for example: "dmn"'
+        ' for delete + move + new.',
+        default=default)
+
+
 @click.command(name='set')
 @click.option('--drive-id', '-d', help='ID of the Drive.')
 @click.option('--email', '-e', help='Email of an authorized account.')
@@ -364,7 +400,14 @@ def ignore_file_path(curr_drive_config):
               help='Local directory to sync with the Drive.')
 @click.option('--ignore-file', type=click.Path(),
               help='File that contains path patterns to ignore when syncing.')
-def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
+@click.option('--ignore-file', type=click.Path(),
+              help='File that contains path patterns to ignore when syncing.')
+@click.option('--from-local-config', help=(
+    'Configuration that will be performed from local to the cloud. Example: "dmn"'))
+@click.option('--from-cloud-config', help=(
+    'Configuration that will be performed locally from the cloud. Example: "dmn"'))
+def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None,
+              from_local_config=None, from_cloud_config=None):
     """Add or modify a remote drive to sync with local directory."""
     all_drives, drive_table = print_all_drives()
     click.echo()
@@ -392,17 +435,24 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
         f'Going to add/edit Drive "{drive_id}"'
         f' of account "{acc_profile.account_email}"...', fg='cyan'))
     # Get local_root.
-    local_root = local_root_path(curr_drive_config)
+    local_root = local_root or local_root_path(curr_drive_config)
     # Get ignore_file.
-    ignore_file = ignore_file_path(curr_drive_config)
+    ignore_file = ignore_file or ignore_file_path(curr_drive_config)
+    # Get upload configuration.
+    from_local_config = from_local_config or from_local_config_configuration(curr_drive_config)
+    # Get download configuration.
+    from_cloud_config = from_cloud_config or from_cloud_config_configuration(curr_drive_config)
 
-    d = context.add_drive(drive_config.LocalDriveConfig(
-        drive_id, account_id, ignore_file, local_root))
+    drive = context.add_drive(drive_config.LocalDriveConfig(
+        drive_id, account_id, ignore_file, local_root, from_local_config,
+        from_cloud_config))
     save_context(context)
     success('\nSuccessfully configured Drive %s of account %s (%s):' % (
-        d.drive_id, acc_profile.account_email, d.account_id))
-    click.echo('  Local directory: ' + d.localroot_path)
-    click.echo('  Ignore file path: ' + d.ignorefile_path)
+        drive.drive_id, acc_profile.account_email, drive.account_id))
+    click.echo('  Local directory: ' + drive.localroot_path)
+    click.echo('  Ignore file path: ' + drive.ignorefile_path)
+    click.echo('  From local config: ' + drive.from_local_config)
+    click.echo('  From cloud config: ' + drive.from_cloud_config)
 
 
 @click.command(name='del', short_help=translator['od_pref.del_drive.short_help'])
