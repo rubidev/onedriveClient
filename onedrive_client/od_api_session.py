@@ -40,7 +40,7 @@ class OneDriveAPISession(onedrivesdk.session.Session):
         saved_data = keyring.get_password(OneDriveAPISession.KEYRING_SERVICE_NAME, load_session_kwargs[keyarg])
 
         if saved_data is None:
-            raise ValueError("Don't find anything")
+            raise ValueError("Unable to find session on keyring.")
 
         data = zlib.decompress(base64.b64decode(saved_data.encode('utf-8')))
         return pickle.loads(data)

@@ -27,7 +27,7 @@ class OneDriveAccount:
 
     @property
     def account_email(self):
-        return self.data['emails']
+        raise NotImplementedError
 
     def get_account(self):
         if self.data['account_type'] == AccountTypes.BUSINESS:
@@ -44,10 +44,7 @@ class OneDriveAccountPersonal(OneDriveAccount):
 
     @property
     def account_email(self):
-        return super().account_email['account']
-
-    def get_account(self):
-        raise AttributeError("'OneDriveAccountPersonal' object has no attribute 'get_account'")
+        return self.data.account_email['account']
 
 
 class OneDriveAccountBusiness(OneDriveAccount):
@@ -57,17 +54,5 @@ class OneDriveAccountBusiness(OneDriveAccount):
         self.account_type = AccountTypes.BUSINESS
 
     @property
-    def account_root_folder(self):
-        return self.data['webUrl']
-
-    @property
-    def tenant(self):
-        site = self.account_root_folder
-        return site[8:site.find('-my.sharepoint.com/')]  # 8 is the len of 'https://'
-
-    @property
-    def endpoint(self):
-        return 'https://' + self.tenant + '-my.sharepoint.com/'
-
-    def get_account(self):
-        raise AttributeError("'OneDriveAccountPersonal' object has no attribute 'get_account'")
+    def account_email(self):
+        return self.data['emails']
