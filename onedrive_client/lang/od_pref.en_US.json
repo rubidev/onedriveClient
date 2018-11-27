@@ -58,5 +58,5 @@
   "od_pref.print_all_drives.all_drives_table.header.quota": "Quota",
   "od_pref.print_all_drives.all_drives_table.header.status": "Status",
 
-  "api.drive.quota.short_format": "{used} Used / {total} Total"
+  "api.drive.quota.short_format": "{used}/{total} Used"
 }
