@@ -240,7 +240,6 @@ Options:
   -u, --get-auth-url  If set, print the authentication URL and exit.
   -c, --code TEXT     Skip interactions and try authenticating with the code
                       directly.
-  -b, --for-business  If set, add an OneDrive for Business account.
   -h, --help          Show this message and exit.
 ```
 
@@ -252,9 +251,8 @@ you provide the information from command line arguments.
 
 In interactive mode, the program will provide you with an URL to visit. Open
 this URL with a web browser (e.g., Chrome, Firefox), sign in with your
-Microsoft Account and authorize `onedrive_client` to access your OneDrive data. The
-web page will eventually land to a blank page whose URL starts with
-"https://login.live.com/oauth20_desktop.srf". Paste this URL
+Microsoft Account and authorize `onedrive_client` to access your OneDrive data. 
+The web page will eventually land to a blank page whose URL starts with "https://login.live.com/oauth20_desktop.srf". Paste this URL
 (a.k.a., _callback URL_) back to the program.
 
 Note that `onedrive_client` needs your basic account information (e.g., email
@@ -264,38 +262,17 @@ address) to distinguish different accounts (otherwise OneDrive returns
 ```bash
 $ onedrive-client-pref account add
 
-NOTE: To better manage your OneDrive accounts, onedrive_client needs permission to access your account info (e.g., email
-address to distinguish different accounts) and read/write your OneDrive files.
+NOTE: To better manage your OneDrive accounts, onedrive_client needs permission to access your account info (e.g., email address to distinguish different accounts) and read/write your OneDrive files.
 
 Paste this URL into your browser to sign in and authorize onedrive_client:
 
-https://login.live.com/oauth20_authorize.srf?response_type=code&scope=wl.signin+wl.emails+wl.offline_access+
-onedrive.readwrite&client_id=000000004010C916&redirect_uri=https%3A%2F%2Flogin.live.com%2Foauth20_desktop.srf
+https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=0e170d2c-0ac5-4a4g-9099-c6bb0fb52d0c&response_type=code&redirect_uri=https%3A%2F%2Fonedrivesite.mario-apra.tk%2F&scope=User.Read+offline_access+Files.ReadWrite.All
 
-The authentication web page will finish with a blank page whose URL starts with
-"https://login.live.com/oauth20_desktop.srf". Paste this URL here.
-Paste URL here: https://login.live.com/oauth20_desktop.srf?code=<some_code_here>&lc=1033
-
+The authentication web page will finish with a blank page whose URL starts with "https://onedrivesite.mario-apra.tk/". Paste this URL after the prompt.
+Paste URL here: https://onedrivesite.mario-apra.tk/?code=M8f5bbb5f-3ib5-5e67-457f-f72132a83af4
 Successfully authorized onedrive_client.
-Successfully added account for Xiangyu Bu (xybu92@live.com, <account_id_token>)!
-
-All OneDrive accounts associated with user "xb":
-
-  #  Account ID          Owner Name    Email Address
----  ------------------  ------------  ---------------
-  0  <account_id_token>  Xiangyu Bu    xybu92@live.com
+Successfully added account for [username]!
 ```
-
-###### One Drive for Business Support
-Be careful, it's still on beta test. As explained before, the onedrive needs some informations. In case of Business, it needs to use 2 different services, one of them to do the background tasks (add, remove, rename some item) and another one just to get your name and email. That's why you need to authenticate in two different services.
-
-To add a business account, just insert the tag '-b' at end:
-
-```bash
-$ onedrive-client-pref account add -b
-```
-
-As happen in normal account, you need to click on link showed and copy the entire link (not only the code!!), but as explained before, you need to do this twice (one for each service).
 
 ##### Command mode
 

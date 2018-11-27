@@ -128,14 +128,8 @@ def save_account(authenticator):
               help=translator['od_pref.authenticate_account.get_auth_url.help'])
 @click.option('--code', '-c', type=str, required=False, default=None,
               help=translator['od_pref.authenticate_account.code.help'])
-@click.option('--for-business', '-b', is_flag=True, default=False, required=False,
-              help=translator['od_pref.authenticate_account.for_business.help'])
 def authenticate_account(get_auth_url=False, code=None, for_business=False):
-
-    if for_business:
-        authenticator = od_auth.OneDriveBusinessAuthenticator()
-    else:  # personal account
-        authenticator = od_auth.OneDriveAuthenticator()
+    authenticator = od_auth.GraphAuthenticator()
 
     click.echo(translator['od_pref.authenticate_account.permission_note'])
     if code is None:
