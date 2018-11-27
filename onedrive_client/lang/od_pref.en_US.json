@@ -54,6 +54,7 @@
   "od_pref.print_all_drives.all_drives_table.header.account_email": "Account Email",
   "od_pref.print_all_drives.all_drives_table.header.drive_id": "Drive ID",
   "od_pref.print_all_drives.all_drives_table.header.type": "Type",
+  "od_pref.print_all_drives.all_drives_table.header.endpoint": "Endpoint",
   "od_pref.print_all_drives.all_drives_table.header.quota": "Quota",
   "od_pref.print_all_drives.all_drives_table.header.status": "Status",
 

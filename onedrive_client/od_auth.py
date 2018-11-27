@@ -30,7 +30,7 @@ def get_authenticator_and_drives(context, account_id):
     if account_type == account_profile.AccountTypes.PERSONAL:
         authenticator = OneDriveAuthenticator()
     elif account_type == account_profile.AccountTypes.BUSINESS:
-        authenticator = OneDriveBusinessAuthenticator()
+        authenticator = GraphAuthenticator()
     else:
         logging.error("Error loading session: account_type don't exists")
         return
@@ -38,8 +38,7 @@ def get_authenticator_and_drives(context, account_id):
     try:
         authenticator.load_session(
             key=od_api_session.get_keyring_key(account_id))
-        if account_type == account_profile.AccountTypes.BUSINESS:
-            authenticator.refresh_session(account_id)
+        authenticator.refresh_session(account_id)
         drives = authenticator.client.drives.get()
     except (onedrivesdk.error.OneDriveError, RuntimeError) as e:
         logging.error('Error loading session: %s. Try refreshing token.', e)
@@ -48,14 +47,15 @@ def get_authenticator_and_drives(context, account_id):
     return authenticator, drives
 
 
-class OneDriveBusinessAuthenticator:
+class GraphAuthenticator:
 
+    # TODO: get rid of difference between BUSINESS and PERSONAL account type.
     ACCOUNT_TYPE = account_profile.AccountTypes.BUSINESS
 
     # App configuration. This is to use OAuth v2 (Graph)
-    APP_ID = SECURITY_CONFIG['BUSINESS_V2']['CLIENT_ID']
-    APP_SECRET = SECURITY_CONFIG['BUSINESS_V2']['CLIENT_SECRET']
-    REDIRECT_URL = SECURITY_CONFIG['BUSINESS_V2']['REDIRECT']
+    APP_ID = SECURITY_CONFIG['GRAPH_API']['CLIENT_ID']
+    APP_SECRET = SECURITY_CONFIG['GRAPH_API']['CLIENT_SECRET']
+    REDIRECT_URL = SECURITY_CONFIG['GRAPH_API']['REDIRECT']
     SCOPES = 'User.Read offline_access Files.ReadWrite.All'.split()
     # Graph API configuration.
     BASE_URL = 'https://graph.microsoft.com/v1.0/me/'
@@ -131,7 +131,7 @@ class OneDriveBusinessAuthenticator:
         data['name'] = resp['displayName']
         data['first_name'] = resp['givenName']
         data['last_name'] = resp['surname']
-        data['emails'] = resp['mail']
+        data['emails'] = resp['mail'] or resp['userPrincipalName']
 
         return account_profile.OneDriveAccountBusiness(data)
 

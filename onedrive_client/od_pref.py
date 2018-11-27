@@ -233,13 +233,14 @@ def print_all_drives():
             authenticator, drives = od_auth.get_authenticator_and_drives(context, i)
         for d in drives:
             drive_objs.append(d)
-            if profile.account_type == account_profile.AccountTypes.BUSINESS:
-                drive_table.append((str(len(drive_table)), profile.account_email,
-                                    d.id, d._prop_dict['webUrl'].split('/')[-1], quota_short_str(d.quota), d.quota.state))
-            else:
-                drive_table.append((str(len(drive_table)), profile.account_email,
-                                    d.id, d.drive_type, quota_short_str(d.quota), d.status.state))
-
+            drive_table.append((
+                str(len(drive_table)),
+                profile.account_email,
+                d.id,
+                d.drive_type,
+                d._prop_dict.get('webUrl', '').split('/')[-1],
+                quota_short_str(d.quota),
+            ))
         all_drives[i] = (profile, authenticator, drive_objs)
     click.secho(translator['od_pref.print_all_drives.all_drives_table.note'], bold=True)
     click.echo()
@@ -248,8 +249,9 @@ def print_all_drives():
         translator['od_pref.print_all_drives.all_drives_table.header.account_email'],
         translator['od_pref.print_all_drives.all_drives_table.header.drive_id'],
         translator['od_pref.print_all_drives.all_drives_table.header.type'],
+        translator['od_pref.print_all_drives.all_drives_table.header.endpoint'],
         translator['od_pref.print_all_drives.all_drives_table.header.quota'],
-        translator['od_pref.print_all_drives.all_drives_table.header.status'])))
+    )))
     return all_drives, drive_table
 
 
