@@ -12,7 +12,7 @@ idna==2.6
 inotify-simple==1.1.7
 keyring==11.0.0
 onedrivesdk==1.1.8
-psutil==5.4.3
+psutil==5.6.6
 pycparser==2.18
 python-dateutil==2.7.0
 PyYAML==3.13
